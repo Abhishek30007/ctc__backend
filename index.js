@@ -157,8 +157,8 @@ Return **ONLY** a raw JSON object (no markdown, no backticks). Choose one of the
 
     // Try multiple models in order of preference
     const modelsToTry = [
-      'gemini-2.5-flash',
-      'gemini-2.0-flash-exp',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
       'gemini-pro'
     ];
 
