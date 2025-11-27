@@ -10,7 +10,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',  // Local development
+    'https://client-g07ag2x5h-abhishek30007s-projects.vercel.app'  // Deployed frontend
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Initialize Gemini AI
@@ -30,7 +36,7 @@ function parseAIResponse(text) {
     cleaned = cleaned.replace(/^```\s*/i, '');
     cleaned = cleaned.replace(/\s*```$/i, '');
     cleaned = cleaned.trim();
-    
+
     // Parse JSON
     return JSON.parse(cleaned);
   } catch (error) {
@@ -47,34 +53,34 @@ app.post('/api/salary', async (req, res) => {
 
     // Validate required fields
     if (!company || typeof company !== 'string' || company.trim() === '') {
-      return res.status(400).json({ 
-        error: 'Company name is required' 
+      return res.status(400).json({
+        error: 'Company name is required'
       });
     }
 
     if (!position || typeof position !== 'string' || position.trim() === '') {
-      return res.status(400).json({ 
-        error: 'Job role/position is required' 
+      return res.status(400).json({
+        error: 'Job role/position is required'
       });
     }
 
     if (!ctc || typeof ctc !== 'string' || ctc.trim() === '') {
-      return res.status(400).json({ 
-        error: 'Annual CTC is required' 
+      return res.status(400).json({
+        error: 'Annual CTC is required'
       });
     }
 
     if (!location || typeof location !== 'string' || location.trim() === '') {
-      return res.status(400).json({ 
-        error: 'Work location is required' 
+      return res.status(400).json({
+        error: 'Work location is required'
       });
     }
 
     // Check if API key is loaded
     if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY is not set in environment variables');
-      return res.status(500).json({ 
-        error: 'Server configuration error: API key not found' 
+      return res.status(500).json({
+        error: 'Server configuration error: API key not found'
       });
     }
 
@@ -155,7 +161,7 @@ Return **ONLY** a raw JSON object (no markdown, no backticks). Choose one of the
       'gemini-2.0-flash-exp',
       'gemini-pro'
     ];
-    
+
     console.log(`Available models to try: ${modelsToTry.join(', ')}`);
 
     let lastError = null;
@@ -166,15 +172,15 @@ Return **ONLY** a raw JSON object (no markdown, no backticks). Choose one of the
     for (const modelName of modelsToTry) {
       try {
         console.log(`Trying model: ${modelName} with Google Search Grounding`);
-        const model = genAI.getGenerativeModel({ 
+        const model = genAI.getGenerativeModel({
           model: modelName,
           tools: [{ googleSearch: {} }]
         });
-        
+
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const rawResponse = response.text().trim();
-        
+
         // Parse the JSON response
         salaryData = parseAIResponse(rawResponse);
         successfulModel = `${modelName} (with Google Search)`;
@@ -193,14 +199,14 @@ Return **ONLY** a raw JSON object (no markdown, no backticks). Choose one of the
       for (const modelName of modelsToTry) {
         try {
           console.log(`Trying model: ${modelName} (without Google Search Grounding)`);
-          const model = genAI.getGenerativeModel({ 
+          const model = genAI.getGenerativeModel({
             model: modelName
           });
-          
+
           const result = await model.generateContent(prompt);
           const response = await result.response;
           const rawResponse = response.text().trim();
-          
+
           // Parse the JSON response
           salaryData = parseAIResponse(rawResponse);
           successfulModel = modelName;
@@ -261,22 +267,22 @@ Return **ONLY** a raw JSON object (no markdown, no backticks). Choose one of the
       stack: error.stack,
       name: error.name
     });
-    
+
     // Handle specific Gemini API errors
     if (error.message?.includes('API_KEY') || error.message?.includes('API key')) {
-      return res.status(500).json({ 
-        error: 'Invalid or missing Gemini API key. Please check your API key.' 
+      return res.status(500).json({
+        error: 'Invalid or missing Gemini API key. Please check your API key.'
       });
     }
 
     if (error.message?.includes('404') || error.message?.includes('not found')) {
-      return res.status(500).json({ 
-        error: 'Model not available. Please check your API key has access to Gemini models. Try using gemini-pro model.' 
+      return res.status(500).json({
+        error: 'Model not available. Please check your API key has access to Gemini models. Try using gemini-pro model.'
       });
     }
 
-    res.status(500).json({ 
-      error: `Failed to fetch salary estimate: ${error.message || 'Unknown error'}` 
+    res.status(500).json({
+      error: `Failed to fetch salary estimate: ${error.message || 'Unknown error'}`
     });
   }
 });
