@@ -13,7 +13,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:5173',  // Local development
-    'https://client-g07ag2x5h-abhishek30007s-projects.vercel.app'  // Deployed frontend
+    'https://client-g07ag2x5h-abhishek30007s-projects.vercel.app',  // Deployed frontend URL 1
+    'https://client-ten-xi-90.vercel.app'  // Deployed frontend URL 2
   ],
   credentials: true
 }));
